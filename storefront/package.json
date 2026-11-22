@@ -15,10 +15,10 @@
   },
   "scripts": {
     "lint": "pwa-kit-dev lint \"**/*.{js,jsx}\"",
-    "push": "npm run build && pwa-kit-dev push",
+    "push": "set -a; [ -f .env ] && . ./.env; set +a; npm run build && pwa-kit-dev push",
     "test": "pwa-kit-dev test",
-    "build": "npm run build-translations && pwa-kit-dev build",
-    "start": "set -a; [ -f .env ] && . ./.env; set +a; cross-env NODE_ICU_DATA=node_modules/full-icu pwa-kit-dev start",
+    "build": "set -a; [ -f .env ] && . ./.env; set +a; npm run build-translations && pwa-kit-dev build",
+    "start": "set -a; [ -f .env ] && . ./.env; set +a; cross-env NODE_ICU_DATA=node_modules/full-icu pwa-kit-dev start --babelArgs '--extensions .js,.jsx,.ts,.tsx --only overrides/**,config/**,worker/**,node_modules/@salesforce/retail-react-app/**'",
     "format": "pwa-kit-dev format \"**/*.{js,jsx}\"",
     "lint:fix": "npm run lint -- --fix",
     "tail-logs": "pwa-kit-dev tail-logs",

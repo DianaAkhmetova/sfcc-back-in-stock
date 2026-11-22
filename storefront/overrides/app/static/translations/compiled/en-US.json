@@ -847,6 +847,90 @@
       "value": "Password Reset"
     }
   ],
+  "back_in_stock.button.different_contact": [
+    {
+      "type": 0,
+      "value": "Use different contact details"
+    }
+  ],
+  "back_in_stock.button.notify_me": [
+    {
+      "type": 0,
+      "value": "Notify Me"
+    }
+  ],
+  "back_in_stock.button.notify_me_when_available": [
+    {
+      "type": 0,
+      "value": "Notify Me When Available"
+    }
+  ],
+  "back_in_stock.button.submitting": [
+    {
+      "type": 0,
+      "value": "Signing you up…"
+    }
+  ],
+  "back_in_stock.description": [
+    {
+      "type": 0,
+      "value": "This item is currently out of stock. Leave your email and we'll let you know as soon as it's available."
+    }
+  ],
+  "back_in_stock.error.sms_consent": [
+    {
+      "type": 0,
+      "value": "Please confirm you agree to receive a text message, or remove the phone number."
+    }
+  ],
+  "back_in_stock.heading": [
+    {
+      "type": 0,
+      "value": "Get notified when it's back"
+    }
+  ],
+  "back_in_stock.hint.remembered": [
+    {
+      "type": 0,
+      "value": "You've already asked to be notified about this item on this device."
+    }
+  ],
+  "back_in_stock.label.email": [
+    {
+      "type": 0,
+      "value": "Email address"
+    }
+  ],
+  "back_in_stock.label.phone": [
+    {
+      "type": 0,
+      "value": "Mobile number for SMS (optional)"
+    }
+  ],
+  "back_in_stock.label.sms_consent": [
+    {
+      "type": 0,
+      "value": "I agree to receive a one-time text message when this item is back in stock. Message and data rates may apply."
+    }
+  ],
+  "back_in_stock.legal": [
+    {
+      "type": 0,
+      "value": "We'll only use your email to tell you when this item is back in stock."
+    }
+  ],
+  "back_in_stock.placeholder.email": [
+    {
+      "type": 0,
+      "value": "you@example.com"
+    }
+  ],
+  "back_in_stock.placeholder.phone": [
+    {
+      "type": 0,
+      "value": "+1 555 123 4567"
+    }
+  ],
   "bonus_product_item.label.quantity": [
     {
       "type": 0,
@@ -1057,12 +1141,6 @@
     {
       "type": 0,
       "value": "Scroll carousel right"
-    }
-  ],
-  "cart.info.removed_from_cart": [
-    {
-      "type": 0,
-      "value": "Item removed from cart"
     }
   ],
   "cart.order_type.delivery": [
@@ -1779,12 +1857,6 @@
       "value": "No, keep item"
     }
   ],
-  "confirmation_modal.remove_cart_item.action.remove": [
-    {
-      "type": 0,
-      "value": "Remove"
-    }
-  ],
   "confirmation_modal.remove_cart_item.action.yes": [
     {
       "type": 0,
@@ -1797,22 +1869,10 @@
       "value": "No, keep item"
     }
   ],
-  "confirmation_modal.remove_cart_item.assistive_msg.remove": [
-    {
-      "type": 0,
-      "value": "Remove unavailable products"
-    }
-  ],
   "confirmation_modal.remove_cart_item.assistive_msg.yes": [
     {
       "type": 0,
       "value": "Yes, remove item"
-    }
-  ],
-  "confirmation_modal.remove_cart_item.message.need_to_remove_due_to_unavailability": [
-    {
-      "type": 0,
-      "value": "Some items are no longer available online and will be removed from your cart."
     }
   ],
   "confirmation_modal.remove_cart_item.message.sure_to_remove": [
@@ -1825,12 +1885,6 @@
     {
       "type": 0,
       "value": "Confirm Remove Item"
-    }
-  ],
-  "confirmation_modal.remove_cart_item.title.items_unavailable": [
-    {
-      "type": 0,
-      "value": "Items Unavailable"
     }
   ],
   "confirmation_modal.remove_wishlist_item.action.no": [
@@ -2607,28 +2661,10 @@
       "value": "Wishlist"
     }
   ],
-  "global.error.feature_unavailable": [
-    {
-      "type": 0,
-      "value": "This feature is not currently available."
-    }
-  ],
-  "global.error.invalid_token": [
-    {
-      "type": 0,
-      "value": "Invalid token, please try again."
-    }
-  ],
   "global.error.missing_passwordless_login_id": [
     {
       "type": 0,
       "value": "Your email is missing for this verification. Click Resend Code and try again."
-    }
-  ],
-  "global.error.something_went_wrong": [
-    {
-      "type": 0,
-      "value": "Something went wrong. Try again!"
     }
   ],
   "global.error.too_many_login_attempts": [
@@ -2641,68 +2677,6 @@
     {
       "type": 0,
       "value": "You reached the limit for password resets. For your security, wait 10 minutes and try again."
-    }
-  ],
-  "global.info.added_to_wishlist": [
-    {
-      "type": 1,
-      "value": "quantity"
-    },
-    {
-      "type": 0,
-      "value": " "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 0,
-              "value": "item"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 0,
-              "value": "items"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "quantity"
-    },
-    {
-      "type": 0,
-      "value": " added to wishlist"
-    }
-  ],
-  "global.info.already_in_wishlist": [
-    {
-      "type": 0,
-      "value": "Item is already in wishlist"
-    }
-  ],
-  "global.info.removed_from_wishlist": [
-    {
-      "type": 0,
-      "value": "Item removed from wishlist"
-    }
-  ],
-  "global.info.store_insufficient_inventory": [
-    {
-      "type": 0,
-      "value": "Some items aren't available for pickup at this store."
-    }
-  ],
-  "global.link.added_to_wishlist.view_wishlist": [
-    {
-      "type": 0,
-      "value": "View"
     }
   ],
   "guestOrderLookup.order.breadcrumb.home": [
@@ -3085,24 +3059,6 @@
       "value": "My Account"
     }
   ],
-  "home.description.features": [
-    {
-      "type": 0,
-      "value": "Out-of-the-box features so that you focus only on adding enhancements."
-    }
-  ],
-  "home.description.here_to_help": [
-    {
-      "type": 0,
-      "value": "Contact our support staff."
-    }
-  ],
-  "home.description.here_to_help_line_2": [
-    {
-      "type": 0,
-      "value": "They will get you to the right place."
-    }
-  ],
   "home.description.shop_products": [
     {
       "type": 0,
@@ -3189,18 +3145,6 @@
       "value": "Wishlist"
     }
   ],
-  "home.heading.features": [
-    {
-      "type": 0,
-      "value": "Features"
-    }
-  ],
-  "home.heading.here_to_help": [
-    {
-      "type": 0,
-      "value": "We're here to help"
-    }
-  ],
   "home.heading.shop_products": [
     {
       "type": 0,
@@ -3225,12 +3169,6 @@
       "value": "Deploy on Managed Runtime"
     }
   ],
-  "home.link.contact_us": [
-    {
-      "type": 0,
-      "value": "Contact Us"
-    }
-  ],
   "home.link.get_started": [
     {
       "type": 0,
@@ -3241,18 +3179,6 @@
     {
       "type": 0,
       "value": "Read docs"
-    }
-  ],
-  "home.title.home": [
-    {
-      "type": 0,
-      "value": "Home"
-    }
-  ],
-  "home.title.react_starter_store": [
-    {
-      "type": 0,
-      "value": "The React PWA Starter Store for Retail"
     }
   ],
   "icons.assistive_msg.lock": [
@@ -4519,18 +4445,6 @@
       "value": " from wishlist"
     }
   ],
-  "product_tile.badge.label.new": [
-    {
-      "type": 0,
-      "value": "New"
-    }
-  ],
-  "product_tile.badge.label.sale": [
-    {
-      "type": 0,
-      "value": "Sale"
-    }
-  ],
   "product_view.action.change_delivery_destination": [
     {
       "type": 0,
@@ -4654,7 +4568,7 @@
   "product_view.label.quantity": [
     {
       "type": 0,
-      "value": "Quantity"
+      "value": "Quantity:"
     }
   ],
   "product_view.label.quantity_decrement": [

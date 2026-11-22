@@ -6,5 +6,7 @@
  */
 
 module.exports = {
+    // Standalone project: don't inherit the cartridge ESLint config from the repo root.
+    root: true,
     extends: [require.resolve('@salesforce/pwa-kit-dev/configs/eslint')]
 }

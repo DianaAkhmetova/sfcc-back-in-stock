@@ -8,6 +8,29 @@
 const sites = require('./sites.js')
 const {parseSettings, validateOtpTokenLength} = require('./utils.js')
 
+// ---------------------------------------------------------------------------------------------
+// Commerce data source.
+//   PWA_SLAS_CLIENT_ID set   -> zzft-001 sandbox (real catalog + Back-In-Stock custom API works).
+//                               The SLAS public client must include the scope c_consumer_rw.
+//   PWA_SLAS_CLIENT_ID unset -> public Salesforce demo catalog (custom API call returns 401,
+//                               because the shopper token is issued for another organization).
+// Set it in storefront/.env (local) and as an MRT environment variable (deployed).
+// ---------------------------------------------------------------------------------------------
+const SANDBOX = {
+    clientId: process.env.PWA_SLAS_CLIENT_ID,
+    organizationId: 'f_ecom_zzft_001',
+    shortCode: 'j1jska9w',
+    siteId: 'RefArch'
+}
+const DEMO = {
+    clientId: '44cfcf31-d64d-4227-9cce-1d9b0716c321',
+    organizationId: 'f_ecom_aaia_prd',
+    shortCode: 'xfdy2axw',
+    siteId: 'RefArch'
+}
+const useSandbox = Boolean(SANDBOX.clientId)
+const commerce = useSandbox ? SANDBOX : DEMO
+
 module.exports = {
     app: {
         // Enable the store locator and shop the store feature.
@@ -99,6 +122,15 @@ module.exports = {
                     '/registration-verification-callback'
             }
         },
+        // Back-In-Stock waitlist ("Notify Me") feature.
+        backInStock: {
+            enabled: process.env.BACK_IN_STOCK_ENABLED !== 'false',
+            // Custom SCAPI API (cartridge demo_backinstock) on zzft-001, reached through the `bis`
+            // proxy below (no CORS), authorized with the shopper's SLAS access token.
+            endpoint: `/mobify/proxy/bis/custom/back-in-stock/v1/organizations/${SANDBOX.organizationId}/subscriptions?siteId={siteId}`,
+            // Client-side request timeout (ms). Server has its own limits.
+            timeoutMs: 8000
+        },
         // The default site for your app. This value will be used when a siteRef could not be determined from the url
         defaultSite: 'RefArch',
         // Provide aliases for your sites. These will be used in place of your site id when generating paths throughout the application.
@@ -108,15 +140,15 @@ module.exports = {
         // },
         // The sites for your app, which is imported from sites.js
         sites,
-        // Commerce api config
+        // Commerce api config (see "Commerce data source" at the top of this file)
         commerceAPI: {
             proxyPath: '/mobify/proxy/api',
             parameters: {
-                clientId: 'REPLACE_WITH_SLAS_CLIENT_ID',
+                clientId: commerce.clientId,
                 notifyClientId: '',
-                organizationId: 'f_ecom_zzft_001',
-                shortCode: 'j1jska9w',
-                siteId: 'RefArch'
+                organizationId: commerce.organizationId,
+                shortCode: commerce.shortCode,
+                siteId: commerce.siteId
             }
             // Optional: Set the domain for auth cookies to share them across subdomains.
             // If not set, cookies default to the current host.
@@ -201,12 +233,17 @@ module.exports = {
         enableHttpOnlySessionCookies: false,
         proxyConfigs: [
             {
-                host: 'j1jska9w.api.commercecloud.salesforce.com',
+                host: `${commerce.shortCode}.api.commercecloud.salesforce.com`,
                 path: 'api'
             },
             {
                 host: 'zzft-001.dx.commercecloud.salesforce.com',
                 path: 'ocapi'
+            },
+            {
+                // Back-In-Stock custom SCAPI API on zzft-001
+                host: `${SANDBOX.shortCode}.api.commercecloud.salesforce.com`,
+                path: 'bis'
             }
         ]
     }

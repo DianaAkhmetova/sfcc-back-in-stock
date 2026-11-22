@@ -1743,6 +1743,202 @@
       "value": "]"
     }
   ],
+  "back_in_stock.button.different_contact": [
+    {
+      "type": 0,
+      "value": "["
+    },
+    {
+      "type": 0,
+      "value": "Ŭşḗḗ ḓīƒƒḗḗřḗḗƞŧ ƈǿǿƞŧȧȧƈŧ ḓḗḗŧȧȧīŀş"
+    },
+    {
+      "type": 0,
+      "value": "]"
+    }
+  ],
+  "back_in_stock.button.notify_me": [
+    {
+      "type": 0,
+      "value": "["
+    },
+    {
+      "type": 0,
+      "value": "Ƞǿǿŧīƒẏ Ḿḗḗ"
+    },
+    {
+      "type": 0,
+      "value": "]"
+    }
+  ],
+  "back_in_stock.button.notify_me_when_available": [
+    {
+      "type": 0,
+      "value": "["
+    },
+    {
+      "type": 0,
+      "value": "Ƞǿǿŧīƒẏ Ḿḗḗ Ẇħḗḗƞ Ȧṽȧȧīŀȧȧƀŀḗḗ"
+    },
+    {
+      "type": 0,
+      "value": "]"
+    }
+  ],
+  "back_in_stock.button.submitting": [
+    {
+      "type": 0,
+      "value": "["
+    },
+    {
+      "type": 0,
+      "value": "Şīɠƞīƞɠ ẏǿǿŭŭ ŭŭƥ…"
+    },
+    {
+      "type": 0,
+      "value": "]"
+    }
+  ],
+  "back_in_stock.description": [
+    {
+      "type": 0,
+      "value": "["
+    },
+    {
+      "type": 0,
+      "value": "Ŧħīş īŧḗḗḿ īş ƈŭŭřřḗḗƞŧŀẏ ǿǿŭŭŧ ǿǿƒ şŧǿǿƈķ. Ŀḗḗȧȧṽḗḗ ẏǿǿŭŭř ḗḗḿȧȧīŀ ȧȧƞḓ ẇḗḗ'ŀŀ ŀḗḗŧ ẏǿǿŭŭ ķƞǿǿẇ ȧȧş şǿǿǿǿƞ ȧȧş īŧ'ş ȧȧṽȧȧīŀȧȧƀŀḗḗ."
+    },
+    {
+      "type": 0,
+      "value": "]"
+    }
+  ],
+  "back_in_stock.error.sms_consent": [
+    {
+      "type": 0,
+      "value": "["
+    },
+    {
+      "type": 0,
+      "value": "Ƥŀḗḗȧȧşḗḗ ƈǿǿƞƒīřḿ ẏǿǿŭŭ ȧȧɠřḗḗḗḗ ŧǿǿ řḗḗƈḗḗīṽḗḗ ȧȧ ŧḗḗẋŧ ḿḗḗşşȧȧɠḗḗ, ǿǿř řḗḗḿǿǿṽḗḗ ŧħḗḗ ƥħǿǿƞḗḗ ƞŭŭḿƀḗḗř."
+    },
+    {
+      "type": 0,
+      "value": "]"
+    }
+  ],
+  "back_in_stock.heading": [
+    {
+      "type": 0,
+      "value": "["
+    },
+    {
+      "type": 0,
+      "value": "Ɠḗḗŧ ƞǿǿŧīƒīḗḗḓ ẇħḗḗƞ īŧ'ş ƀȧȧƈķ"
+    },
+    {
+      "type": 0,
+      "value": "]"
+    }
+  ],
+  "back_in_stock.hint.remembered": [
+    {
+      "type": 0,
+      "value": "["
+    },
+    {
+      "type": 0,
+      "value": "Ẏǿǿŭŭ'ṽḗḗ ȧȧŀřḗḗȧȧḓẏ ȧȧşķḗḗḓ ŧǿǿ ƀḗḗ ƞǿǿŧīƒīḗḗḓ ȧȧƀǿǿŭŭŧ ŧħīş īŧḗḗḿ ǿǿƞ ŧħīş ḓḗḗṽīƈḗḗ."
+    },
+    {
+      "type": 0,
+      "value": "]"
+    }
+  ],
+  "back_in_stock.label.email": [
+    {
+      "type": 0,
+      "value": "["
+    },
+    {
+      "type": 0,
+      "value": "Ḗḿȧȧīŀ ȧȧḓḓřḗḗşş"
+    },
+    {
+      "type": 0,
+      "value": "]"
+    }
+  ],
+  "back_in_stock.label.phone": [
+    {
+      "type": 0,
+      "value": "["
+    },
+    {
+      "type": 0,
+      "value": "Ḿǿǿƀīŀḗḗ ƞŭŭḿƀḗḗř ƒǿǿř ŞḾŞ (ǿǿƥŧīǿǿƞȧȧŀ)"
+    },
+    {
+      "type": 0,
+      "value": "]"
+    }
+  ],
+  "back_in_stock.label.sms_consent": [
+    {
+      "type": 0,
+      "value": "["
+    },
+    {
+      "type": 0,
+      "value": "Ī ȧȧɠřḗḗḗḗ ŧǿǿ řḗḗƈḗḗīṽḗḗ ȧȧ ǿǿƞḗḗ-ŧīḿḗḗ ŧḗḗẋŧ ḿḗḗşşȧȧɠḗḗ ẇħḗḗƞ ŧħīş īŧḗḗḿ īş ƀȧȧƈķ īƞ şŧǿǿƈķ. Ḿḗḗşşȧȧɠḗḗ ȧȧƞḓ ḓȧȧŧȧȧ řȧȧŧḗḗş ḿȧȧẏ ȧȧƥƥŀẏ."
+    },
+    {
+      "type": 0,
+      "value": "]"
+    }
+  ],
+  "back_in_stock.legal": [
+    {
+      "type": 0,
+      "value": "["
+    },
+    {
+      "type": 0,
+      "value": "Ẇḗḗ'ŀŀ ǿǿƞŀẏ ŭŭşḗḗ ẏǿǿŭŭř ḗḗḿȧȧīŀ ŧǿǿ ŧḗḗŀŀ ẏǿǿŭŭ ẇħḗḗƞ ŧħīş īŧḗḗḿ īş ƀȧȧƈķ īƞ şŧǿǿƈķ."
+    },
+    {
+      "type": 0,
+      "value": "]"
+    }
+  ],
+  "back_in_stock.placeholder.email": [
+    {
+      "type": 0,
+      "value": "["
+    },
+    {
+      "type": 0,
+      "value": "ẏǿǿŭŭ@ḗḗẋȧȧḿƥŀḗḗ.ƈǿǿḿ"
+    },
+    {
+      "type": 0,
+      "value": "]"
+    }
+  ],
+  "back_in_stock.placeholder.phone": [
+    {
+      "type": 0,
+      "value": "["
+    },
+    {
+      "type": 0,
+      "value": "+1 555 123 4567"
+    },
+    {
+      "type": 0,
+      "value": "]"
+    }
+  ],
   "bonus_product_item.label.quantity": [
     {
       "type": 0,
@@ -2117,20 +2313,6 @@
     {
       "type": 0,
       "value": "Şƈřǿǿŀŀ ƈȧȧřǿǿŭŭşḗḗŀ řīɠħŧ"
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
-  "cart.info.removed_from_cart": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Īŧḗḗḿ řḗḗḿǿǿṽḗḗḓ ƒřǿǿḿ ƈȧȧřŧ"
     },
     {
       "type": 0,
@@ -3603,20 +3785,6 @@
       "value": "]"
     }
   ],
-  "confirmation_modal.remove_cart_item.action.remove": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Řḗḗḿǿǿṽḗḗ"
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
   "confirmation_modal.remove_cart_item.action.yes": [
     {
       "type": 0,
@@ -3645,20 +3813,6 @@
       "value": "]"
     }
   ],
-  "confirmation_modal.remove_cart_item.assistive_msg.remove": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Řḗḗḿǿǿṽḗḗ ŭŭƞȧȧṽȧȧīŀȧȧƀŀḗḗ ƥřǿǿḓŭŭƈŧş"
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
   "confirmation_modal.remove_cart_item.assistive_msg.yes": [
     {
       "type": 0,
@@ -3667,20 +3821,6 @@
     {
       "type": 0,
       "value": "Ẏḗḗş, řḗḗḿǿǿṽḗḗ īŧḗḗḿ"
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
-  "confirmation_modal.remove_cart_item.message.need_to_remove_due_to_unavailability": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Şǿǿḿḗḗ īŧḗḗḿş ȧȧřḗḗ ƞǿǿ ŀǿǿƞɠḗḗř ȧȧṽȧȧīŀȧȧƀŀḗḗ ǿǿƞŀīƞḗḗ ȧȧƞḓ ẇīŀŀ ƀḗḗ řḗḗḿǿǿṽḗḗḓ ƒřǿǿḿ ẏǿǿŭŭř ƈȧȧřŧ."
     },
     {
       "type": 0,
@@ -3709,20 +3849,6 @@
     {
       "type": 0,
       "value": "Ƈǿǿƞƒīřḿ Řḗḗḿǿǿṽḗḗ Īŧḗḗḿ"
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
-  "confirmation_modal.remove_cart_item.title.items_unavailable": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Īŧḗḗḿş Ŭƞȧȧṽȧȧīŀȧȧƀŀḗḗ"
     },
     {
       "type": 0,
@@ -5391,34 +5517,6 @@
       "value": "]"
     }
   ],
-  "global.error.feature_unavailable": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Ŧħīş ƒḗḗȧȧŧŭŭřḗḗ īş ƞǿǿŧ ƈŭŭřřḗḗƞŧŀẏ ȧȧṽȧȧīŀȧȧƀŀḗḗ."
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
-  "global.error.invalid_token": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Īƞṽȧȧŀīḓ ŧǿǿķḗḗƞ, ƥŀḗḗȧȧşḗḗ ŧřẏ ȧȧɠȧȧīƞ."
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
   "global.error.missing_passwordless_login_id": [
     {
       "type": 0,
@@ -5427,20 +5525,6 @@
     {
       "type": 0,
       "value": "Ẏǿǿŭŭř ḗḗḿȧȧīŀ īş ḿīşşīƞɠ ƒǿǿř ŧħīş ṽḗḗřīƒīƈȧȧŧīǿǿƞ. Ƈŀīƈķ Řḗḗşḗḗƞḓ Ƈǿǿḓḗḗ ȧȧƞḓ ŧřẏ ȧȧɠȧȧīƞ."
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
-  "global.error.something_went_wrong": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Şǿǿḿḗḗŧħīƞɠ ẇḗḗƞŧ ẇřǿǿƞɠ. Ŧřẏ ȧȧɠȧȧīƞ!"
     },
     {
       "type": 0,
@@ -5469,108 +5553,6 @@
     {
       "type": 0,
       "value": "Ẏǿǿŭŭ řḗḗȧȧƈħḗḗḓ ŧħḗḗ ŀīḿīŧ ƒǿǿř ƥȧȧşşẇǿǿřḓ řḗḗşḗḗŧş. Ƒǿǿř ẏǿǿŭŭř şḗḗƈŭŭřīŧẏ, ẇȧȧīŧ 10 ḿīƞŭŭŧḗḗş ȧȧƞḓ ŧřẏ ȧȧɠȧȧīƞ."
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
-  "global.info.added_to_wishlist": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 1,
-      "value": "quantity"
-    },
-    {
-      "type": 0,
-      "value": " "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 0,
-              "value": "īŧḗḗḿ"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 0,
-              "value": "īŧḗḗḿş"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "quantity"
-    },
-    {
-      "type": 0,
-      "value": " ȧȧḓḓḗḗḓ ŧǿǿ ẇīşħŀīşŧ"
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
-  "global.info.already_in_wishlist": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Īŧḗḗḿ īş ȧȧŀřḗḗȧȧḓẏ īƞ ẇīşħŀīşŧ"
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
-  "global.info.removed_from_wishlist": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Īŧḗḗḿ řḗḗḿǿǿṽḗḗḓ ƒřǿǿḿ ẇīşħŀīşŧ"
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
-  "global.info.store_insufficient_inventory": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Şǿǿḿḗḗ īŧḗḗḿş ȧȧřḗḗƞ'ŧ ȧȧṽȧȧīŀȧȧƀŀḗḗ ƒǿǿř ƥīƈķŭŭƥ ȧȧŧ ŧħīş şŧǿǿřḗḗ."
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
-  "global.link.added_to_wishlist.view_wishlist": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Ṽīḗḗẇ"
     },
     {
       "type": 0,
@@ -6381,48 +6363,6 @@
       "value": "]"
     }
   ],
-  "home.description.features": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Ǿŭŭŧ-ǿǿƒ-ŧħḗḗ-ƀǿǿẋ ƒḗḗȧȧŧŭŭřḗḗş şǿǿ ŧħȧȧŧ ẏǿǿŭŭ ƒǿǿƈŭŭş ǿǿƞŀẏ ǿǿƞ ȧȧḓḓīƞɠ ḗḗƞħȧȧƞƈḗḗḿḗḗƞŧş."
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
-  "home.description.here_to_help": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Ƈǿǿƞŧȧȧƈŧ ǿǿŭŭř şŭŭƥƥǿǿřŧ şŧȧȧƒƒ."
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
-  "home.description.here_to_help_line_2": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Ŧħḗḗẏ ẇīŀŀ ɠḗḗŧ ẏǿǿŭŭ ŧǿǿ ŧħḗḗ řīɠħŧ ƥŀȧȧƈḗḗ."
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
   "home.description.shop_products": [
     {
       "type": 0,
@@ -6613,34 +6553,6 @@
       "value": "]"
     }
   ],
-  "home.heading.features": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Ƒḗḗȧȧŧŭŭřḗḗş"
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
-  "home.heading.here_to_help": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Ẇḗḗ'řḗḗ ħḗḗřḗḗ ŧǿǿ ħḗḗŀƥ"
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
   "home.heading.shop_products": [
     {
       "type": 0,
@@ -6697,20 +6609,6 @@
       "value": "]"
     }
   ],
-  "home.link.contact_us": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Ƈǿǿƞŧȧȧƈŧ Ŭş"
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
   "home.link.get_started": [
     {
       "type": 0,
@@ -6733,34 +6631,6 @@
     {
       "type": 0,
       "value": "Řḗḗȧȧḓ ḓǿǿƈş"
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
-  "home.title.home": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Ħǿǿḿḗḗ"
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
-  "home.title.react_starter_store": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Ŧħḗḗ Řḗḗȧȧƈŧ ƤẆȦ Şŧȧȧřŧḗḗř Şŧǿǿřḗḗ ƒǿǿř Řḗḗŧȧȧīŀ"
     },
     {
       "type": 0,
@@ -9463,34 +9333,6 @@
       "value": "]"
     }
   ],
-  "product_tile.badge.label.new": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Ƞḗḗẇ"
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
-  "product_tile.badge.label.sale": [
-    {
-      "type": 0,
-      "value": "["
-    },
-    {
-      "type": 0,
-      "value": "Şȧȧŀḗḗ"
-    },
-    {
-      "type": 0,
-      "value": "]"
-    }
-  ],
   "product_view.action.change_delivery_destination": [
     {
       "type": 0,
@@ -9762,7 +9604,7 @@
     },
     {
       "type": 0,
-      "value": "Ɋŭŭȧȧƞŧīŧẏ"
+      "value": "Ɋŭŭȧȧƞŧīŧẏ:"
     },
     {
       "type": 0,

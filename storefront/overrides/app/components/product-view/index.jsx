@@ -1,0 +1,1355 @@
+/*
+ * Copyright (c) 2023, Salesforce, Inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import React, {forwardRef, useEffect, useMemo, useRef, useState, useCallback} from 'react'
+import PropTypes from 'prop-types'
+import loadable from '@loadable/component'
+import {useLocation} from 'react-router-dom'
+import {useIntl, FormattedMessage} from 'react-intl'
+
+import {
+    Flex,
+    Heading,
+    Button,
+    Skeleton,
+    Box,
+    Text,
+    VStack,
+    Fade,
+    Radio,
+    RadioGroup,
+    useTheme
+} from '@salesforce/retail-react-app/app/components/shared/ui'
+
+// Constants
+const DELIVERY_OPTIONS = {
+    DELIVERY: 'delivery',
+    PICKUP: 'pickup'
+}
+const DELIVERY_ESTIMATE_LOADING_ID = 'delivery-estimate-loading'
+import {useCurrency, useDerivedProduct} from '@salesforce/retail-react-app/app/hooks'
+import {useAddToCartModalContext} from '@salesforce/retail-react-app/app/hooks/use-add-to-cart-modal'
+import {STORE_LOCATOR_IS_ENABLED} from '@salesforce/retail-react-app/app/constants'
+import {getConfig} from '@salesforce/pwa-kit-runtime/utils/ssr-config'
+import {useShopperBasketsV2Mutation as useShopperBasketsMutation} from '@salesforce/commerce-sdk-react'
+import {
+    useSFPayments,
+    useExpressCheckoutEnabled
+} from '@salesforce/retail-react-app/app/hooks/use-sf-payments'
+
+// project components
+import ImageGallery from '@salesforce/retail-react-app/app/components/image-gallery'
+import Breadcrumb from '@salesforce/retail-react-app/app/components/breadcrumb'
+import Link from '@salesforce/retail-react-app/app/components/link'
+import withRegistration from '@salesforce/retail-react-app/app/components/with-registration'
+import {Skeleton as ImageGallerySkeleton} from '@salesforce/retail-react-app/app/components/image-gallery'
+import {HideOnDesktop, HideOnMobile} from '@salesforce/retail-react-app/app/components/responsive'
+import QuantityPicker from '@salesforce/retail-react-app/app/components/quantity-picker'
+import {useToast} from '@salesforce/retail-react-app/app/hooks/use-toast'
+import {API_ERROR_MESSAGE} from '@salesforce/retail-react-app/app/constants'
+import DisplayPrice from '@salesforce/retail-react-app/app/components/display-price'
+import Swatch from '@salesforce/retail-react-app/app/components/swatch-group/swatch'
+import SwatchGroup from '@salesforce/retail-react-app/app/components/swatch-group'
+import {getPriceData} from '@salesforce/retail-react-app/app/utils/product-utils'
+import PromoCallout from '@salesforce/retail-react-app/app/components/product-tile/promo-callout'
+import SFPaymentsExpressButtons from '@salesforce/retail-react-app/app/components/sf-payments-express-buttons'
+import {EXPRESS_BUY_NOW} from '@salesforce/retail-react-app/app/hooks/use-sf-payments'
+import LoadingSpinner from '@salesforce/retail-react-app/app/components/loading-spinner'
+import {useCleanupTemporaryBaskets} from '@salesforce/retail-react-app/app/hooks/use-cleanup-temporary-baskets'
+import useMultiSite from '@salesforce/retail-react-app/app/hooks/use-multi-site'
+import {getCountryCodeFromLocale} from '@salesforce/retail-react-app/app/components/delivery-estimate/locale'
+import {getSavedDeliveryDestination} from '@salesforce/retail-react-app/app/components/delivery-estimate/utils'
+// [BIS] Back-In-Stock waitlist
+import BackInStockNotify from '../back-in-stock'
+import {resolveWaitlistTarget} from '../../utils/back-in-stock'
+
+// Delivery estimates are opt-in on the PDP, so defer their code until the feature renders.
+const DeliveryEstimate = loadable(() =>
+    import('@salesforce/retail-react-app/app/components/delivery-estimate')
+)
+
+const ProductViewHeader = ({
+    name,
+    currency,
+    priceData,
+    category,
+    product,
+    isProductPartOfBundle
+}) => {
+    return (
+        <VStack mr={4} spacing={2} align="flex-start" marginBottom={[4, 4, 4, 0, 0]}>
+            {category && (
+                <Skeleton isLoaded={category} minWidth={64}>
+                    <Breadcrumb categories={category} />
+                </Skeleton>
+            )}
+
+            {/* Title */}
+            <Skeleton isLoaded={name}>
+                <Heading fontSize="2xl">{`${name}`}</Heading>
+            </Skeleton>
+
+            {!isProductPartOfBundle && (
+                <>
+                    <Skeleton isLoaded={priceData?.currentPrice}>
+                        {priceData?.currentPrice && (
+                            <DisplayPrice priceData={priceData} currency={currency} />
+                        )}
+                    </Skeleton>
+
+                    <Skeleton isLoaded={product}>
+                        {product?.productPromotions && <PromoCallout product={product} />}
+                    </Skeleton>
+                </>
+            )}
+        </VStack>
+    )
+}
+
+ProductViewHeader.propTypes = {
+    name: PropTypes.string,
+    currency: PropTypes.string,
+    category: PropTypes.array,
+    priceData: PropTypes.object,
+    product: PropTypes.object,
+    isProductPartOfBundle: PropTypes.bool,
+    showDeliveryOptions: PropTypes.bool
+}
+
+const ButtonWithRegistration = withRegistration(Button)
+
+/**
+ * Render a product detail view that includes name, image gallery, price,
+ * variant selections, action buttons
+ */
+
+const ProductView = forwardRef(
+    (
+        {
+            product,
+            category,
+            showFullLink = false,
+            imageSize = 'md',
+            isWishlistLoading = false,
+            addToCart,
+            updateCart,
+            addToWishlist,
+            updateWishlist,
+            isProductLoading,
+            isProductPartOfSet = false,
+            isProductPartOfBundle = false,
+            childOfBundleQuantity = 0,
+            childProductOrderability,
+            setChildProductOrderability,
+            isBasketLoading = false,
+            onVariantSelected = () => {},
+            validateOrderability = (variant, product, quantity, stockLevel) => {
+                if (isProductLoading) return false
+
+                // If product has variations, a variant must be selected
+                if (product?.variationAttributes?.length > 0 && !variant) {
+                    return false
+                }
+
+                // Check if product (either variant or standard) is orderable and if quantity is valid
+                return (
+                    (variant?.orderable || product?.inventory?.orderable) &&
+                    quantity > 0 &&
+                    quantity <= stockLevel
+                )
+            },
+            showImageGallery = true,
+            setSelectedBundleQuantity = () => {},
+            selectedBundleParentQuantity = 1,
+            pickupInStore = false,
+            setPickupInStore = () => {},
+            onOpenStoreLocator = () => {},
+            showDeliveryOptions = true,
+            customButtons = [],
+            maxOrderQuantity = null,
+            imageGalleryFooter = null,
+            controlledVariationValues = null,
+            onVariationChange = null,
+            actionFooter = null,
+            showDeliveryEstimate = false
+        },
+        ref
+    ) => {
+        const {currency: activeCurrency} = useCurrency()
+        const {site, locale} = useMultiSite()
+        const showToast = useToast()
+        const intl = useIntl()
+        const location = useLocation()
+        const storeLocatorEnabled =
+            getConfig()?.app?.storeLocatorEnabled ?? STORE_LOCATOR_IS_ENABLED
+        const {
+            isOpen: isAddToCartModalOpen,
+            onOpen: onAddToCartModalOpen,
+            onClose: onAddToCartModalClose
+        } = useAddToCartModalContext()
+
+        const {mutateAsync: createBasket} = useShopperBasketsMutation('createBasket')
+        const {mutateAsync: addItemToBasket} = useShopperBasketsMutation('addItemToBasket')
+
+        const theme = useTheme()
+        const {confirmingBasket} = useSFPayments()
+        const [showOptionsMessage, toggleShowOptionsMessage] = useState(false)
+        const {
+            showLoading,
+            showInventoryMessage,
+            inventoryMessage,
+            quantity,
+            minOrderQuantity,
+            setQuantity,
+            variant,
+            variationParams,
+            variationAttributes,
+            stockLevel,
+            stepQuantity,
+            isOutOfStock,
+            unfulfillable,
+            isSelectedStoreOutOfStock,
+            selectedStore
+        } = useDerivedProduct(
+            product,
+            isProductPartOfSet,
+            isProductPartOfBundle,
+            pickupInStore,
+            controlledVariationValues,
+            onVariationChange
+        )
+        const priceData = useMemo(() => {
+            return getPriceData(product, {quantity})
+        }, [product, quantity])
+        const canAddToWishlist = !isProductLoading
+        const isProductASet = product?.type?.set
+        const isProductABundle = product?.type?.bundle
+        const errorContainerRef = useRef(null)
+        const storeName = selectedStore?.name
+        const inventoryId = selectedStore?.inventoryId
+        const [deliveryEstimateResultContainer, setDeliveryEstimateResultContainer] = useState(null)
+        const [deliveryEstimateDestination, setDeliveryEstimateDestination] = useState(null)
+        const [isDeliveryEstimateOpen, setIsDeliveryEstimateOpen] = useState(true)
+        const [automaticDeliveryEstimateLookup, setAutomaticDeliveryEstimateLookup] = useState({
+            productId: null,
+            isLoading: false
+        })
+        const [focusDeliveryEstimateInput, setFocusDeliveryEstimateInput] = useState(false)
+        const [focusDeliveryEstimateDestination, setFocusDeliveryEstimateDestination] =
+            useState(false)
+        const previousDeliveryEstimateProductId = useRef(null)
+        const deliveryEstimateDestinationButtonRef = useRef(null)
+        const isDeliverySelected = !pickupInStore
+        const isPickupDisabled = storeName && inventoryId && isSelectedStoreOutOfStock
+        const {pdp: showExpressOnPDP} = useExpressCheckoutEnabled()
+        const deliveryEstimateProductId =
+            variant?.productId || (product?.type?.item ? product.id : null)
+        const deliveryEstimateProductIdRef = useRef(deliveryEstimateProductId)
+        deliveryEstimateProductIdRef.current = deliveryEstimateProductId
+        const hasCurrentDeliveryEstimateProduct = product?.id === deliveryEstimateProductId
+        const suppressDeferredDeliveryEstimate =
+            hasCurrentDeliveryEstimateProduct &&
+            typeof product?.inventory?.ats === 'number' &&
+            product.inventory.ats <= 0 &&
+            (product.inventory.preorderable || product.inventory.backorderable)
+        const defaultCountryCode = getCountryCodeFromLocale(locale?.id)
+        const canRenderDeliveryEstimate = Boolean(
+            showDeliveryEstimate &&
+                defaultCountryCode &&
+                hasCurrentDeliveryEstimateProduct &&
+                !suppressDeferredDeliveryEstimate &&
+                site?.id &&
+                deliveryEstimateProductId
+        )
+        const canShowDeliveryEstimateLoading = Boolean(
+            showDeliveryEstimate &&
+                defaultCountryCode &&
+                !suppressDeferredDeliveryEstimate &&
+                site?.id &&
+                deliveryEstimateProductId
+        )
+        const hasSavedDeliveryDestination = Boolean(
+            canShowDeliveryEstimateLoading &&
+                getSavedDeliveryDestination(site.id, defaultCountryCode)
+        )
+
+        const hasResolvedDeliveryEstimate =
+            deliveryEstimateDestination?.productId === deliveryEstimateProductId
+        const isWaitingForSavedDestinationLookup =
+            hasSavedDeliveryDestination &&
+            automaticDeliveryEstimateLookup.productId !== deliveryEstimateProductId
+        const isAutomaticDeliveryEstimateLoading =
+            (automaticDeliveryEstimateLookup.productId === deliveryEstimateProductId &&
+                automaticDeliveryEstimateLookup.isLoading) ||
+            isWaitingForSavedDestinationLookup
+        const hasDeliveryEstimatePresentation =
+            hasResolvedDeliveryEstimate || isAutomaticDeliveryEstimateLoading
+
+        const handleResolvedDeliveryEstimate = useCallback(
+            (destination, {focusDeliveryOption = false} = {}) => {
+                setDeliveryEstimateDestination({
+                    ...destination,
+                    productId: deliveryEstimateProductId
+                })
+                setIsDeliveryEstimateOpen(false)
+                setFocusDeliveryEstimateDestination(focusDeliveryOption)
+            },
+            [deliveryEstimateProductId]
+        )
+
+        useEffect(() => {
+            if (!focusDeliveryEstimateDestination) {
+                return
+            }
+
+            deliveryEstimateDestinationButtonRef.current?.focus()
+            setFocusDeliveryEstimateDestination(false)
+        }, [focusDeliveryEstimateDestination])
+
+        const handleChangeDeliveryEstimateDestination = useCallback(() => {
+            setDeliveryEstimateDestination(null)
+            setIsDeliveryEstimateOpen(true)
+            setFocusDeliveryEstimateInput(true)
+        }, [])
+
+        const handleAutomaticDeliveryEstimateLookup = useCallback((isLoading, productId) => {
+            if (productId !== deliveryEstimateProductIdRef.current) {
+                return
+            }
+
+            setAutomaticDeliveryEstimateLookup({productId, isLoading})
+        }, [])
+
+        const {disableButton, customInventoryMessage} = useMemo(() => {
+            let shouldDisableButton = showInventoryMessage
+            let currentInventoryMsg = ''
+            if (
+                !shouldDisableButton &&
+                (isProductASet || isProductABundle) &&
+                childProductOrderability
+            ) {
+                // if any of the children are not orderable, it will disable the add to cart button
+                const unavailableChildProductKey = Object.keys(childProductOrderability).find(
+                    (key) => {
+                        return childProductOrderability[key].showInventoryMessage
+                    }
+                )
+                shouldDisableButton = !!unavailableChildProductKey
+                if (unavailableChildProductKey) {
+                    const unavailableChildProduct =
+                        childProductOrderability[unavailableChildProductKey]
+                    if (unavailableChildProduct.unfulfillable) {
+                        currentInventoryMsg = intl.formatMessage(
+                            {
+                                defaultMessage: 'Only {stockLevel} left for {productName}!',
+                                id: 'use_product.message.inventory_remaining_for_product'
+                            },
+                            {
+                                stockLevel: unavailableChildProduct.stockLevel,
+                                productName: unavailableChildProduct.productName
+                            }
+                        )
+                    }
+                    if (unavailableChildProduct.isOutOfStock) {
+                        currentInventoryMsg = intl.formatMessage(
+                            {
+                                defaultMessage: 'Out of stock for {productName}',
+                                id: 'use_product.message.out_of_stock_for_product'
+                            },
+                            {productName: unavailableChildProduct.productName}
+                        )
+                    }
+                }
+            }
+            return {disableButton: shouldDisableButton, customInventoryMessage: currentInventoryMsg}
+        }, [showInventoryMessage, childProductOrderability])
+
+        const validateAndShowError = (opts = {}) => {
+            const {scrollErrorIntoView = true} = opts
+            // Validate that all attributes are selected before proceeding.
+            const hasValidSelection = validateOrderability(variant, product, quantity, stockLevel)
+            const showError = !isProductASet && !isProductABundle && !hasValidSelection
+            const scrollToError = showError && scrollErrorIntoView
+
+            toggleShowOptionsMessage(showError)
+
+            if (scrollToError) {
+                errorContainerRef.current.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                })
+            }
+
+            return hasValidSelection
+        }
+        const cleanupTemporaryBaskets = useCleanupTemporaryBaskets()
+
+        // prepareBasket is used to prepare the basket for express payments
+        // useCallback recreates prepareBasket primarily when product or quantity change, along with variant, stockLevel, and product type flags (isProductASet, isProductABundle)
+        const prepareBasket = useCallback(async () => {
+            // Validate that all attributes are selected before proceeding
+            const hasValidSelection = validateOrderability(variant, product, quantity, stockLevel)
+            let errorMessage = ''
+
+            if (!hasValidSelection && !isProductASet && !isProductABundle) {
+                toggleShowOptionsMessage(true)
+                if (errorContainerRef.current) {
+                    errorContainerRef.current.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    })
+                }
+                errorMessage = intl.formatMessage({
+                    defaultMessage:
+                        'Please select all product options before proceeding with Express Payments',
+                    id: 'product_view.prepareBasket'
+                })
+
+                const error = new Error(errorMessage)
+                error.isValidationError = true
+                throw error
+            }
+
+            // Clean up temporary baskets before creating a new one
+            await cleanupTemporaryBaskets()
+
+            // Create a new temporary basket
+            const newBasket = await createBasket({
+                parameters: {
+                    temporary: true
+                },
+                body: {}
+            })
+
+            const selectedProduct = variant || product
+            // Use variant's productId if variant is selected, otherwise use product's id
+            const productIdToUse = selectedProduct?.productId || selectedProduct?.id
+
+            if (!productIdToUse) {
+                errorMessage = intl.formatMessage({
+                    defaultMessage: 'Unable to determine product ID for basket',
+                    id: 'product_view.prepareBasket'
+                })
+                throw new Error(errorMessage)
+            }
+            // Add the product to the temporary basket
+            const basketWithItem = await addItemToBasket({
+                parameters: {basketId: newBasket.basketId},
+                body: [
+                    {
+                        productId: productIdToUse,
+                        quantity: quantity
+                    }
+                ]
+            })
+
+            return basketWithItem
+        }, [variant, product, quantity, stockLevel, isProductASet, isProductABundle])
+
+        // [BIS] Decide whether the "Add to Cart" slot becomes a "Notify Me" form.
+        // Only for a concrete, out-of-stock SKU on the online (delivery) inventory; never for
+        // cart/wishlist edit flows, bundle children or set parents.
+        const backInStockEnabled = getConfig()?.app?.backInStock?.enabled
+        const waitlistTarget =
+            backInStockEnabled &&
+            !showLoading &&
+            !isProductLoading &&
+            addToCart &&
+            !updateCart &&
+            !isProductPartOfBundle &&
+            !isProductASet &&
+            !pickupInStore &&
+            isOutOfStock
+                ? resolveWaitlistTarget(product, variant)
+                : null
+
+        // [BIS] `placement` added: 'inline' (desktop) | 'sticky' (mobile footer)
+        const renderActionButtons = (placement = 'inline') => {
+            const buttons = []
+            const buttonText = {
+                update: intl.formatMessage({
+                    defaultMessage: 'Update',
+                    id: 'product_view.button.update'
+                }),
+                addToCart: intl.formatMessage({
+                    defaultMessage: 'Add to Cart',
+                    id: 'product_view.button.add_to_cart'
+                }),
+                addSetToCart: intl.formatMessage({
+                    defaultMessage: 'Add Set to Cart',
+                    id: 'product_view.button.add_set_to_cart'
+                }),
+                addBundleToCart: intl.formatMessage({
+                    defaultMessage: 'Add Bundle to Cart',
+                    id: 'product_view.button.add_bundle_to_cart'
+                }),
+                addToWishlist: intl.formatMessage({
+                    defaultMessage: 'Add to Wishlist',
+                    id: 'product_view.button.add_to_wishlist'
+                }),
+                addSetToWishlist: intl.formatMessage({
+                    defaultMessage: 'Add Set to Wishlist',
+                    id: 'product_view.button.add_set_to_wishlist'
+                }),
+                addBundleToWishlist: intl.formatMessage({
+                    defaultMessage: 'Add Bundle to Wishlist',
+                    id: 'product_view.button.add_bundle_to_wishlist'
+                })
+            }
+
+            const showError = () => {
+                showToast({
+                    title: intl.formatMessage(API_ERROR_MESSAGE),
+                    status: 'error'
+                })
+            }
+
+            const handleCartItem = async () => {
+                const hasValidSelection = validateAndShowError()
+
+                if (!hasValidSelection) {
+                    return null
+                }
+
+                if (!addToCart && !updateCart) return null
+                if (updateCart) {
+                    await updateCart(variant || product, quantity)
+                    return
+                }
+                try {
+                    const itemsAdded = await addToCart([{product, variant, quantity}])
+                    // Open modal only when `addToCart` returns some data
+                    // It's possible that the item has been added to cart, but we don't want to open the modal.
+                    // See wishlist_primary_action for example.
+                    if (itemsAdded) {
+                        onAddToCartModalOpen({
+                            product,
+                            itemsAdded,
+                            selectedQuantity: quantity
+                        })
+                    }
+                } catch (e) {
+                    showError()
+                }
+            }
+
+            const handleWishlistItem = async () => {
+                if (!updateWishlist && !addToWishlist) return null
+                if (updateWishlist) {
+                    updateWishlist(product, variant, quantity)
+                    return
+                }
+                addToWishlist(product, variant, quantity)
+            }
+
+            // [BIS] Replace "Add to Cart" with the waitlist form for an out-of-stock SKU.
+            // Keyed by SKU so switching variants resets form state.
+            if (waitlistTarget) {
+                buttons.push(
+                    <BackInStockNotify
+                        key={`back-in-stock-${waitlistTarget.sku}`}
+                        placement={placement}
+                        sku={waitlistTarget.sku}
+                        masterId={waitlistTarget.masterId}
+                        productName={product?.name}
+                    />
+                )
+            }
+
+            // child product of bundles do not have add to cart button
+            if ((addToCart || updateCart) && !isProductPartOfBundle && !waitlistTarget) {
+                buttons.push(
+                    <Button
+                        key="cart-button"
+                        onClick={handleCartItem}
+                        isDisabled={disableButton}
+                        isLoading={isBasketLoading}
+                        width="100%"
+                        variant="solid"
+                        marginBottom={4}
+                    >
+                        {updateCart
+                            ? buttonText.update
+                            : isProductASet
+                            ? buttonText.addSetToCart
+                            : isProductABundle
+                            ? buttonText.addBundleToCart
+                            : buttonText.addToCart}
+                    </Button>
+                )
+            }
+
+            // child product of bundles do not have add to wishlist button
+            if ((addToWishlist || updateWishlist) && !isProductPartOfBundle) {
+                buttons.push(
+                    <ButtonWithRegistration
+                        key="wishlist-button"
+                        onClick={handleWishlistItem}
+                        disabled={isWishlistLoading || !canAddToWishlist}
+                        isLoading={isWishlistLoading}
+                        width="100%"
+                        variant="outline"
+                        marginBottom={4}
+                    >
+                        {updateWishlist
+                            ? buttonText.update
+                            : isProductASet
+                            ? buttonText.addSetToWishlist
+                            : isProductABundle
+                            ? buttonText.addBundleToWishlist
+                            : buttonText.addToWishlist}
+                    </ButtonWithRegistration>
+                )
+            }
+
+            if (
+                showExpressOnPDP &&
+                !isProductASet &&
+                !isProductPartOfBundle &&
+                activeCurrency &&
+                priceData.currentPrice
+            ) {
+                buttons.push(
+                    <SFPaymentsExpressButtons
+                        key="express-buttons"
+                        usage={EXPRESS_BUY_NOW}
+                        paymentCurrency={activeCurrency}
+                        paymentCountryCode={null}
+                        initialAmount={priceData.currentPrice}
+                        prepareBasket={prepareBasket}
+                        expressButtonLayout="vertical"
+                        maximumButtonCount={1}
+                    />
+                )
+            }
+
+            // Add custom buttons if provided
+            if (customButtons && customButtons.length > 0) {
+                customButtons.forEach((customButton, index) => {
+                    buttons.push(
+                        React.cloneElement(customButton, {
+                            key: `custom-button-${index}`,
+                            width: customButton.props.width || '100%',
+                            marginBottom: customButton.props.marginBottom || 4
+                        })
+                    )
+                })
+            }
+
+            return buttons
+        }
+
+        // Bind the reference with our `scope` that includes the internal validate function for this component.
+        // Other values can be added to this scope as required.
+        if (typeof ref === 'function') {
+            ref = ref.bind({validateOrderability: validateAndShowError})
+        }
+
+        // Set the quantity of bundle child in a product bundle to ensure availability messages appear
+        if (
+            isProductPartOfBundle &&
+            quantity != selectedBundleParentQuantity * childOfBundleQuantity
+        ) {
+            setQuantity(selectedBundleParentQuantity * childOfBundleQuantity)
+        }
+
+        useEffect(() => {
+            if (isAddToCartModalOpen) {
+                onAddToCartModalClose()
+            }
+        }, [location.pathname])
+
+        useEffect(() => {
+            if (
+                !isProductASet &&
+                !isProductABundle &&
+                validateOrderability(variant, product, quantity, stockLevel)
+            ) {
+                toggleShowOptionsMessage(false)
+            }
+        }, [variationParams])
+
+        useEffect(() => {
+            if (variant) {
+                onVariantSelected(product, variant, quantity)
+            }
+        }, [variant?.productId, quantity])
+
+        useEffect(() => {
+            if ((isProductPartOfBundle || isProductPartOfSet) && product && product.type?.item) {
+                onVariantSelected(product, null, childOfBundleQuantity || quantity)
+            }
+        }, [product, childOfBundleQuantity, quantity, isProductPartOfBundle, isProductPartOfSet])
+
+        useEffect(() => {
+            if (isProductPartOfBundle || isProductPartOfSet) {
+                const key = product.itemId ?? product.id
+                // when showInventoryMessage is true, it means child product is not orderable
+                setChildProductOrderability((previousState) => ({
+                    ...previousState,
+                    [key]: {
+                        showInventoryMessage,
+                        isOutOfStock,
+                        unfulfillable,
+                        stockLevel,
+                        productName: product?.name
+                    }
+                }))
+            }
+        }, [showInventoryMessage, inventoryMessage])
+
+        // Auto-switch off pickup in store when product becomes unavailable at selected store
+        useEffect(() => {
+            if (pickupInStore && isSelectedStoreOutOfStock) {
+                setPickupInStore(false)
+            }
+        }, [pickupInStore, isSelectedStoreOutOfStock, selectedStore])
+
+        useEffect(() => {
+            if (
+                previousDeliveryEstimateProductId.current &&
+                previousDeliveryEstimateProductId.current !== deliveryEstimateProductId
+            ) {
+                setDeliveryEstimateDestination(null)
+                setIsDeliveryEstimateOpen(true)
+                setFocusDeliveryEstimateInput(false)
+            }
+            previousDeliveryEstimateProductId.current = deliveryEstimateProductId
+        }, [deliveryEstimateProductId])
+
+        const handleDeliveryOptionChange = (value) => {
+            if (value === DELIVERY_OPTIONS.PICKUP && !inventoryId) {
+                onOpenStoreLocator()
+                return
+            }
+
+            setPickupInStore(value === DELIVERY_OPTIONS.PICKUP)
+        }
+
+        return (
+            <Flex direction={'column'} data-testid="product-view" ref={ref}>
+                {/* Basic information etc. title, price, breadcrumb*/}
+                <Box display={['block', 'block', 'block', 'none']}>
+                    <ProductViewHeader
+                        name={product?.name}
+                        product={product}
+                        priceData={priceData}
+                        currency={product?.currency || activeCurrency}
+                        category={category}
+                        isProductPartOfBundle={isProductPartOfBundle}
+                    />
+                </Box>
+                <Flex direction={['column', 'column', 'column', 'row']}>
+                    {showImageGallery && (
+                        <Box flex={1} mr={[0, 0, 0, 6, 6]}>
+                            {product ? (
+                                <>
+                                    <ImageGallery
+                                        size={imageSize}
+                                        imageGroups={product.imageGroups}
+                                        selectedVariationAttributes={variationParams}
+                                        lazy={isProductPartOfSet || isProductPartOfBundle}
+                                    />
+                                    <HideOnMobile>
+                                        {showFullLink && product && (
+                                            <Link
+                                                to={`/product/${product.master.masterId}`}
+                                                color="blue.600"
+                                            >
+                                                <FormattedMessage
+                                                    id="product_view.link.full_details"
+                                                    defaultMessage="See full details"
+                                                />
+                                            </Link>
+                                        )}
+                                    </HideOnMobile>
+                                </>
+                            ) : (
+                                <ImageGallerySkeleton />
+                            )}
+                            {/* Custom footer content (e.g., Back to Selection button) */}
+                            {imageGalleryFooter && (
+                                <Box mt={6} mb={2}>
+                                    {imageGalleryFooter}
+                                </Box>
+                            )}
+                        </Box>
+                    )}
+
+                    {/* Variations & Quantity Selector & CTA buttons */}
+                    <VStack
+                        align="stretch"
+                        spacing={8}
+                        flex={1}
+                        pb={[
+                            isProductPartOfSet || isProductPartOfBundle ? 4 : '120px',
+                            isProductPartOfSet || isProductPartOfBundle ? 4 : '120px',
+                            isProductPartOfSet || isProductPartOfBundle ? 4 : '120px',
+                            4
+                        ]}
+                    >
+                        <Box display={['none', 'none', 'none', 'block']}>
+                            <ProductViewHeader
+                                name={product?.name}
+                                product={product}
+                                priceData={priceData}
+                                currency={product?.currency || activeCurrency}
+                                category={category}
+                                isProductPartOfBundle={isProductPartOfBundle}
+                            />
+                        </Box>
+                        <VStack align="stretch" spacing={4}>
+                            {isProductPartOfBundle && (
+                                <Box>
+                                    <Text fontWeight="medium" fontSize="md" aria-label="price">
+                                        <label>
+                                            {intl.formatMessage({
+                                                defaultMessage: 'Quantity',
+                                                id: 'product_view.label.quantity'
+                                            })}
+                                            : {childOfBundleQuantity}
+                                        </label>
+                                    </Text>
+                                </Box>
+                            )}
+                            {/*
+                                Customize the skeletons shown for attributes to suit your needs. At the point
+                                that we show the skeleton we do not know how many variations are selectable. So choose
+                                a a skeleton that will meet most of your needs.
+                            */}
+                            {showLoading ? (
+                                <>
+                                    {/* First Attribute Skeleton */}
+                                    <Skeleton height={6} width={32} />
+                                    <Skeleton height={20} width={64} />
+
+                                    {/* Second Attribute Skeleton */}
+                                    <Skeleton height={6} width={32} />
+                                    <Skeleton height={20} width={64} />
+                                </>
+                            ) : (
+                                variationAttributes.map(({id, name, selectedValue, values}) => {
+                                    const swatches = values.map(
+                                        ({href, name, image, value, orderable}, index) => {
+                                            const content = image ? (
+                                                <Box
+                                                    height="100%"
+                                                    width="100%"
+                                                    minWidth="32px"
+                                                    backgroundRepeat="no-repeat"
+                                                    backgroundSize="cover"
+                                                    backgroundColor={name.toLowerCase()}
+                                                    backgroundImage={`url(${
+                                                        image.disBaseLink || image.link
+                                                    })`}
+                                                />
+                                            ) : (
+                                                name
+                                            )
+                                            const hasSelection = Boolean(selectedValue?.value)
+                                            const isSelected = selectedValue?.value === value
+                                            const isFirst = index === 0
+                                            // To mimic the behavior of a native radio input, only
+                                            // one swatch should receive tab focus; the rest can be
+                                            // selected using arrow keys when the swatch group has
+                                            // focus. The focused element is the selected option or
+                                            // the first in the group, if no option is selected.
+                                            // This is a slight difference, for simplicity, from the
+                                            // native element, where the first element is focused on
+                                            // `Tab` and the _last_ element is focused on `Shift+Tab`
+                                            const isFocusable =
+                                                isSelected || (!hasSelection && isFirst)
+                                            return (
+                                                <Swatch
+                                                    key={value}
+                                                    href={href}
+                                                    disabled={!orderable}
+                                                    value={value}
+                                                    name={name}
+                                                    variant={id === 'color' ? 'circle' : 'square'}
+                                                    selected={isSelected}
+                                                    isFocusable={isFocusable}
+                                                >
+                                                    {content}
+                                                </Swatch>
+                                            )
+                                        }
+                                    )
+                                    return (
+                                        <SwatchGroup
+                                            key={id}
+                                            value={selectedValue?.value}
+                                            displayName={selectedValue?.name || ''}
+                                            label={intl.formatMessage(
+                                                {
+                                                    defaultMessage: '{variantType}',
+                                                    id: 'product_view.label.variant_type'
+                                                },
+                                                {variantType: name}
+                                            )}
+                                            handleChange={
+                                                onVariationChange
+                                                    ? (value) => onVariationChange(id, value)
+                                                    : undefined
+                                            }
+                                        >
+                                            {swatches}
+                                        </SwatchGroup>
+                                    )
+                                })
+                            )}
+
+                            {!isProductASet && !isProductPartOfBundle && (
+                                <VStack align="stretch" maxWidth={'200px'}>
+                                    <Box fontWeight="bold">
+                                        <label htmlFor="quantity">
+                                            {intl.formatMessage({
+                                                defaultMessage: 'Quantity:',
+                                                id: 'product_view.label.quantity'
+                                            })}
+                                        </label>
+                                    </Box>
+
+                                    <QuantityPicker
+                                        id="quantity"
+                                        step={stepQuantity}
+                                        value={quantity}
+                                        min={minOrderQuantity}
+                                        {...(maxOrderQuantity != null && {max: maxOrderQuantity})}
+                                        onChange={(stringValue, numberValue) => {
+                                            // Set the Quantity of product to value of input if value number
+                                            if (numberValue >= 0) {
+                                                setQuantity(numberValue)
+                                                if (isProductABundle)
+                                                    setSelectedBundleQuantity(numberValue)
+                                            } else if (stringValue === '') {
+                                                // We want to allow the use to clear the input to start a new input so here we set the quantity to '' so NAN is not displayed
+                                                // User will not be able to add '' qauntity to the cart due to the add to cart button enablement rules
+                                                setQuantity(stringValue)
+                                            }
+                                        }}
+                                        onBlur={(e) => {
+                                            // Default to 1the `minOrderQuantity` if a user leaves the box with an invalid value
+                                            const value = e.target.value
+                                            if (parseInt(value) < 0 || value === '') {
+                                                setQuantity(minOrderQuantity)
+                                                if (isProductABundle)
+                                                    setSelectedBundleQuantity(minOrderQuantity)
+                                            }
+                                        }}
+                                        onFocus={(e) => {
+                                            // This is useful for mobile devices, this allows the user to pop open the keyboard and set the
+                                            // new quantity with one click. NOTE: This is something that can be refactored into the parent
+                                            // component, potentially as a prop called `selectInputOnFocus`.
+                                            e.target.select()
+                                        }}
+                                        productName={product?.name}
+                                    />
+                                </VStack>
+                            )}
+                            <Box ref={errorContainerRef}>
+                                {!showLoading && showOptionsMessage && (
+                                    <Fade in={true}>
+                                        <Text color="orange.600" fontWeight={600} marginBottom={8}>
+                                            {intl.formatMessage({
+                                                defaultMessage:
+                                                    'Please select all your options above'
+                                            })}
+                                        </Text>
+                                    </Fade>
+                                )}
+                            </Box>
+                            <HideOnDesktop>
+                                {showFullLink && product && (
+                                    <Link
+                                        to={`/product/${product.master.masterId}`}
+                                        color="blue.600"
+                                    >
+                                        <FormattedMessage
+                                            id="product_view.link.full_details"
+                                            defaultMessage="See full details"
+                                        />
+                                    </Link>
+                                )}
+                            </HideOnDesktop>
+                            {isProductASet && <p>{product?.shortDescription}</p>}
+                        </VStack>
+
+                        <Box>
+                            {!showLoading && showInventoryMessage && !customInventoryMessage && (
+                                <Fade in={true}>
+                                    <Text color="orange.600" fontWeight={600} marginBottom={8}>
+                                        {inventoryMessage}
+                                    </Text>
+                                </Fade>
+                            )}
+                            {!showLoading && customInventoryMessage && (
+                                <Fade in={true}>
+                                    <Text color="orange.600" fontWeight={600} marginBottom={8}>
+                                        {customInventoryMessage}
+                                    </Text>
+                                </Fade>
+                            )}
+                            <Box>
+                                {showDeliveryOptions && (
+                                    <>
+                                        <Box mb={4}>
+                                            <RadioGroup
+                                                value={
+                                                    pickupInStore
+                                                        ? DELIVERY_OPTIONS.PICKUP
+                                                        : DELIVERY_OPTIONS.DELIVERY
+                                                }
+                                                onChange={handleDeliveryOptionChange}
+                                                mb={1}
+                                                aria-label={intl.formatMessage({
+                                                    id: 'product_view.label.fulfillment_method',
+                                                    defaultMessage: 'Fulfillment method'
+                                                })}
+                                            >
+                                                <Flex gap={2}>
+                                                    <Box
+                                                        flex={1}
+                                                        border="1px"
+                                                        borderColor={
+                                                            isDeliverySelected
+                                                                ? 'blue.600'
+                                                                : 'gray.200'
+                                                        }
+                                                        borderRadius="base"
+                                                        p={3}
+                                                        data-testid="delivery-fulfillment-option"
+                                                        data-selected={isDeliverySelected}
+                                                    >
+                                                        <Flex
+                                                            align="center"
+                                                            gap={
+                                                                hasResolvedDeliveryEstimate ? 1 : 2
+                                                            }
+                                                        >
+                                                            <Radio
+                                                                value={DELIVERY_OPTIONS.DELIVERY}
+                                                                isDisabled={disableButton}
+                                                                aria-describedby={
+                                                                    isAutomaticDeliveryEstimateLoading &&
+                                                                    isDeliverySelected
+                                                                        ? DELIVERY_ESTIMATE_LOADING_ID
+                                                                        : hasResolvedDeliveryEstimate
+                                                                        ? 'delivery-estimate-destination'
+                                                                        : 'delivery-estimate-description'
+                                                                }
+                                                            >
+                                                                {hasResolvedDeliveryEstimate ? (
+                                                                    <FormattedMessage
+                                                                        defaultMessage="Deliver"
+                                                                        id="product_view.label.deliver"
+                                                                    />
+                                                                ) : (
+                                                                    <FormattedMessage
+                                                                        defaultMessage="Delivery"
+                                                                        id="product_view.label.delivery"
+                                                                    />
+                                                                )}
+                                                            </Radio>
+                                                            {hasResolvedDeliveryEstimate && (
+                                                                <Text
+                                                                    as="span"
+                                                                    fontWeight="inherit"
+                                                                >
+                                                                    <FormattedMessage
+                                                                        defaultMessage="to {postalCode}"
+                                                                        id="product_view.text.delivery_to"
+                                                                        values={{
+                                                                            postalCode: (
+                                                                                <Button
+                                                                                    id="delivery-estimate-destination"
+                                                                                    ref={
+                                                                                        deliveryEstimateDestinationButtonRef
+                                                                                    }
+                                                                                    type="button"
+                                                                                    variant="link"
+                                                                                    color="blue.600"
+                                                                                    fontWeight="inherit"
+                                                                                    minWidth="auto"
+                                                                                    textDecoration="underline"
+                                                                                    onClick={
+                                                                                        handleChangeDeliveryEstimateDestination
+                                                                                    }
+                                                                                    aria-label={intl.formatMessage(
+                                                                                        {
+                                                                                            id: 'product_view.action.change_delivery_destination',
+                                                                                            defaultMessage:
+                                                                                                'Change delivery destination from {postalCode}'
+                                                                                        },
+                                                                                        {
+                                                                                            postalCode:
+                                                                                                deliveryEstimateDestination.postalCode
+                                                                                        }
+                                                                                    )}
+                                                                                >
+                                                                                    {
+                                                                                        deliveryEstimateDestination.postalCode
+                                                                                    }
+                                                                                </Button>
+                                                                            )
+                                                                        }}
+                                                                    />
+                                                                </Text>
+                                                            )}
+                                                        </Flex>
+                                                        {!hasDeliveryEstimatePresentation && (
+                                                            <Text
+                                                                id="delivery-estimate-description"
+                                                                fontSize="sm"
+                                                                color="gray.600"
+                                                                mt={2}
+                                                            >
+                                                                <FormattedMessage
+                                                                    defaultMessage="Enter postal code to see delivery estimate"
+                                                                    id="product_view.description.delivery_estimate"
+                                                                />
+                                                            </Text>
+                                                        )}
+                                                        <Box
+                                                            ref={setDeliveryEstimateResultContainer}
+                                                            data-testid="delivery-estimate-result-container"
+                                                        >
+                                                            {isWaitingForSavedDestinationLookup && (
+                                                                <Text
+                                                                    id={
+                                                                        DELIVERY_ESTIMATE_LOADING_ID
+                                                                    }
+                                                                    mt={3}
+                                                                    role="status"
+                                                                    aria-live="polite"
+                                                                    fontSize="xs"
+                                                                    color="gray.600"
+                                                                >
+                                                                    <FormattedMessage
+                                                                        defaultMessage="Calculating..."
+                                                                        id="delivery_estimate.status.loading"
+                                                                    />
+                                                                </Text>
+                                                            )}
+                                                        </Box>
+                                                    </Box>
+                                                    {storeLocatorEnabled && (
+                                                        <Box
+                                                            flex={1}
+                                                            border="1px"
+                                                            borderColor={
+                                                                pickupInStore
+                                                                    ? 'blue.600'
+                                                                    : 'gray.200'
+                                                            }
+                                                            borderRadius="base"
+                                                            p={3}
+                                                            data-testid="pickup-fulfillment-option"
+                                                            data-selected={pickupInStore}
+                                                        >
+                                                            <Radio
+                                                                value={DELIVERY_OPTIONS.PICKUP}
+                                                                aria-describedby="pickup-store-description"
+                                                                isDisabled={isPickupDisabled}
+                                                            >
+                                                                <FormattedMessage
+                                                                    defaultMessage="Free pickup in"
+                                                                    id="product_view.label.pickup_in_store"
+                                                                />
+                                                            </Radio>
+                                                            <Text
+                                                                id="pickup-store-description"
+                                                                fontSize="sm"
+                                                                color="gray.600"
+                                                                mt={2}
+                                                            >
+                                                                {storeName || (
+                                                                    <FormattedMessage
+                                                                        defaultMessage="Select Store"
+                                                                        id="store_inventory_filter.action.select_store"
+                                                                    />
+                                                                )}
+                                                            </Text>
+                                                            {storeName && inventoryId && (
+                                                                <Text
+                                                                    color="black"
+                                                                    fontWeight={600}
+                                                                    mt={2}
+                                                                    data-testid="store-stock-status-msg"
+                                                                >
+                                                                    {!isSelectedStoreOutOfStock
+                                                                        ? intl.formatMessage(
+                                                                              {
+                                                                                  id: 'product_view.status.in_stock_at_store',
+                                                                                  defaultMessage:
+                                                                                      'In stock at {storeName}'
+                                                                              },
+                                                                              {
+                                                                                  storeName: (
+                                                                                      <Link
+                                                                                          as="button"
+                                                                                          color="blue.600"
+                                                                                          textDecoration="underline"
+                                                                                          onClick={
+                                                                                              onOpenStoreLocator
+                                                                                          }
+                                                                                      >
+                                                                                          {
+                                                                                              storeName
+                                                                                          }
+                                                                                      </Link>
+                                                                                  )
+                                                                              }
+                                                                          )
+                                                                        : intl.formatMessage(
+                                                                              {
+                                                                                  id: 'product_view.status.out_of_stock_at_store',
+                                                                                  defaultMessage:
+                                                                                      'Out of Stock at {storeName}'
+                                                                              },
+                                                                              {
+                                                                                  storeName: (
+                                                                                      <Link
+                                                                                          as="button"
+                                                                                          color="blue.600"
+                                                                                          textDecoration="underline"
+                                                                                          onClick={
+                                                                                              onOpenStoreLocator
+                                                                                          }
+                                                                                      >
+                                                                                          {
+                                                                                              storeName
+                                                                                          }
+                                                                                      </Link>
+                                                                                  )
+                                                                              }
+                                                                          )}
+                                                                </Text>
+                                                            )}
+                                                        </Box>
+                                                    )}
+                                                </Flex>
+                                            </RadioGroup>
+                                        </Box>
+                                    </>
+                                )}
+                                {canRenderDeliveryEstimate && (
+                                    <DeliveryEstimate
+                                        productId={deliveryEstimateProductId}
+                                        siteId={site.id}
+                                        defaultCountryCode={defaultCountryCode}
+                                        resultContainer={
+                                            showDeliveryOptions &&
+                                            (isDeliverySelected ||
+                                                isAutomaticDeliveryEstimateLoading)
+                                                ? deliveryEstimateResultContainer
+                                                : null
+                                        }
+                                        showResultInCard={!showDeliveryOptions}
+                                        showCalculator={
+                                            !showDeliveryOptions ||
+                                            (isDeliveryEstimateOpen &&
+                                                !isAutomaticDeliveryEstimateLoading)
+                                        }
+                                        showResult={!showDeliveryOptions || !isDeliveryEstimateOpen}
+                                        onAutomaticLookupChange={
+                                            showDeliveryOptions
+                                                ? handleAutomaticDeliveryEstimateLookup
+                                                : undefined
+                                        }
+                                        onResolvedDestination={
+                                            showDeliveryOptions
+                                                ? handleResolvedDeliveryEstimate
+                                                : undefined
+                                        }
+                                        focusPostalCode={focusDeliveryEstimateInput}
+                                        onPostalCodeFocusHandled={() =>
+                                            setFocusDeliveryEstimateInput(false)
+                                        }
+                                    />
+                                )}
+                                <Box
+                                    display={
+                                        isProductPartOfSet
+                                            ? 'block'
+                                            : ['none', 'none', 'none', 'block']
+                                    }
+                                >
+                                    {renderActionButtons()}
+                                </Box>
+                            </Box>
+                        </Box>
+                        {actionFooter}
+                    </VStack>
+                </Flex>
+
+                {/* Sticky call-to-action buttons for mobile and certain product types */}
+                <Box
+                    position="fixed"
+                    bg="white"
+                    width="100%"
+                    display={
+                        isProductPartOfSet || isProductPartOfBundle
+                            ? 'none'
+                            : ['block', 'block', 'block', 'none']
+                    }
+                    p={[4, 4, 6]}
+                    left={0}
+                    bottom={0}
+                    zIndex={2}
+                    boxShadow={theme.shadows.top}
+                >
+                    {renderActionButtons('sticky') /* [BIS] */}
+                </Box>
+
+                {/* Loading overlay during express payment confirmation */}
+                {confirmingBasket && <LoadingSpinner wrapperStyles={{height: '100vh'}} />}
+            </Flex>
+        )
+    }
+)
+
+ProductView.displayName = 'ProductView'
+
+ProductView.propTypes = {
+    product: PropTypes.object,
+    isProductPartOfSet: PropTypes.bool,
+    isProductPartOfBundle: PropTypes.bool,
+    childOfBundleQuantity: PropTypes.number,
+    category: PropTypes.array,
+    isProductLoading: PropTypes.bool,
+    isBasketLoading: PropTypes.bool,
+    isWishlistLoading: PropTypes.bool,
+    addToCart: PropTypes.func,
+    addToWishlist: PropTypes.func,
+    updateCart: PropTypes.func,
+    updateWishlist: PropTypes.func,
+    showFullLink: PropTypes.bool,
+    imageSize: PropTypes.oneOf(['sm', 'md']),
+    childProductOrderability: PropTypes.object,
+    setChildProductOrderability: PropTypes.func,
+    onVariantSelected: PropTypes.func,
+    validateOrderability: PropTypes.func,
+    showImageGallery: PropTypes.bool,
+    setSelectedBundleQuantity: PropTypes.func,
+    selectedBundleParentQuantity: PropTypes.number,
+    pickupInStore: PropTypes.bool,
+    setPickupInStore: PropTypes.func,
+    onOpenStoreLocator: PropTypes.func,
+    showDeliveryOptions: PropTypes.bool,
+    customButtons: PropTypes.array,
+    promotionId: PropTypes.string,
+    maxOrderQuantity: PropTypes.number,
+    imageGalleryFooter: PropTypes.node,
+    alignItems: PropTypes.string,
+    controlledVariationValues: PropTypes.object,
+    onVariationChange: PropTypes.func,
+    actionFooter: PropTypes.node,
+    showDeliveryEstimate: PropTypes.bool
+}
+
+export default ProductView
