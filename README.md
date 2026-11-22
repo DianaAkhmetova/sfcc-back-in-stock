@@ -11,8 +11,6 @@ This is a demo. All the backend code lives in one cartridge, `demo_backinstock`,
 | `storefront/` | PWA Kit 3.22 (retail-react-app, extensibility mode). My changes are in `storefront/overrides/`. |
 | `cartridges/demo_backinstock/` | Custom SCAPI API, the waitlist job, notification providers and the email template. |
 | `metadata/site_template/` | Site import: custom object type, webhook service, job schedule. |
-| `metadata/demo_data/` | Sample waitlist data for testing the job. Not part of the deliverable metadata. |
-| `scripts/build-metadata.js` | Builds the import zips and injects secrets from `dw.json`, so nothing secret is committed. |
 
 ## Setup
 
