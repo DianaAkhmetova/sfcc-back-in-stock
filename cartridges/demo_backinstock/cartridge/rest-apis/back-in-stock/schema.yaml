@@ -1,0 +1,95 @@
+openapi: 3.0.0
+
+info:
+  version: 1.0.0
+  title: Back In Stock API
+  description: |
+    Back-In-Stock waitlist (demo). Shoppers subscribe to a concrete SKU that is currently out of stock;
+    a scheduled job notifies them on replenishment.
+
+paths:
+  /subscriptions:
+    post:
+      summary: Subscribe to a back-in-stock notification for one SKU
+      operationId: createSubscription
+      parameters:
+        - $ref: "#/components/parameters/siteId"
+      requestBody:
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/SubscriptionRequest'
+      responses:
+        "201":
+          description: Email added to the SKU's waitlist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionResponse'
+        "200":
+          description: Email already on the waitlist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionResponse'
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              examples:
+                invalid_email:
+                  value:
+                    {
+                      "title": "invalid",
+                      "type": "https://api.commercecloud.salesforce.com/documentation/error/v1/custom-errors/invalid.email",
+                      "detail": "A valid email address is required."
+                    }
+        "500":
+          description: Something unexpected happened
+          content:
+            application/problem+json:
+              examples:
+                error:
+                  value:
+                    {
+                      "type": "https://api.commercecloud.salesforce.com/documentation/error/v1/custom-errors/error"
+                    }
+
+security:
+  - ShopperToken: ["c_consumer_rw"]
+
+components:
+  securitySchemes:
+    ShopperToken:
+      type: http
+      scheme: bearer
+  parameters:
+    siteId:
+      name: siteId
+      in: query
+      description: The site of the current request.
+      required: true
+      schema:
+        type: string
+        minLength: 1
+  schemas:
+    SubscriptionRequest:
+      type: object
+      required: [productId, email]
+      properties:
+        productId:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        smsConsent:
+          type: boolean
+    SubscriptionResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        productId:
+          type: string

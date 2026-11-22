@@ -1,0 +1,72 @@
+{
+    "step-types": {
+        "script-module-step": [
+            {
+                "@type-id": "custom.BackInStock.ProcessWaitlist",
+                "@supports-parallel-execution": "false",
+                "@supports-site-context": "true",
+                "@supports-organization-context": "false",
+                "description": "Back-In-Stock: check inventory of waitlisted SKUs and notify subscribers.",
+                "module": "demo_backinstock/cartridge/scripts/jobs/processWaitlist.js",
+                "function": "execute",
+                "transactional": "false",
+                "timeout-in-seconds": "3000",
+                "parameters": {
+                    "parameter": [
+                        {
+                            "@name": "MinimumStockThreshold",
+                            "@type": "long",
+                            "@required": "true",
+                            "@trim": "true",
+                            "description": "Minimum available-to-sell (ATS) quantity before subscribers of a SKU are notified.",
+                            "default-value": "30",
+                            "min-value": "1"
+                        },
+                        {
+                            "@name": "NotificationMultiplier",
+                            "@type": "double",
+                            "@required": "true",
+                            "@trim": "true",
+                            "description": "Multiplier for partial replenishment. Subscribers notified per SKU per run = available stock (ATS) x this value, rounded down, first-come-first-served. Example: ATS 30 x 2 = first 60 subscribers. Use 1 to notify exactly one shopper per unit; above 1 compensates for shoppers who will not buy. The rest stay on the waitlist for the next run.",
+                            "default-value": "2"
+                        },
+                        {
+                            "@name": "MaxAttempts",
+                            "@type": "long",
+                            "@required": "true",
+                            "@trim": "true",
+                            "description": "Delivery attempts before a subscriber is marked FAILED.",
+                            "default-value": "5",
+                            "min-value": "1"
+                        },
+                        {
+                            "@name": "DeliveryProvider",
+                            "@type": "string",
+                            "@required": "true",
+                            "@trim": "true",
+                            "description": "How notifications are sent. webhook = external REST API (service backinstock.webhook.notify, email + SMS). sfccMail = SFCC email (dw.net.Mail, sender = email.from in backinstock.properties; no SMS).",
+                            "enum-values": {
+                                "value": ["webhook", "sfccMail"]
+                            },
+                            "default-value": "webhook"
+                        },
+                        {
+                            "@name": "TestMode",
+                            "@type": "boolean",
+                            "@required": "false",
+                            "description": "Test mode: notified subscribers stay on the waitlist unchanged, so the next run sends to them again. Unchecked (production): a notified subscriber is removed from the waitlist; an empty SKU waitlist object is deleted.",
+                            "default-value": "false"
+                        }
+                    ]
+                },
+                "status-codes": {
+                    "status": [
+                        { "@code": "OK", "description": "Run completed." },
+                        { "@code": "PROVIDER_THROTTLED", "description": "Provider returned 429; run stopped early, continues next run." },
+                        { "@code": "PROVIDER_CIRCUIT_OPEN", "description": "Circuit breaker open / service unavailable; run stopped early." }
+                    ]
+                }
+            }
+        ]
+    }
+}
