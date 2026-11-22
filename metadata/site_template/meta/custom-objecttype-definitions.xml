@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
+    <custom-type type-id="BackInStockProduct">
+        <display-name xml:lang="x-default">Back In Stock Waitlist (per SKU)</display-name>
+        <description xml:lang="x-default">One object per orderable SKU. Waiting shoppers are stored in "subscribers" as a JSON array (FIFO) with their notification status.</description>
+        <staging-mode>no-staging</staging-mode>
+        <storage-scope>site</storage-scope>
+        <key-definition attribute-id="productID">
+            <display-name xml:lang="x-default">SKU (Product ID)</display-name>
+            <type>string</type>
+            <min-length>1</min-length>
+        </key-definition>
+        <attribute-definitions>
+            <attribute-definition attribute-id="masterProductID">
+                <display-name xml:lang="x-default">Master Product ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="subscribers">
+                <display-name xml:lang="x-default">Subscribers (JSON)</display-name>
+                <description xml:lang="x-default">[{email, phone, smsConsent, status, attempts, subscribedAt, lastError}]. status: PENDING | FAILED. Notified subscribers are removed.</description>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+        </attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="Waitlist">
+                <display-name xml:lang="x-default">Waitlist</display-name>
+                <attribute attribute-id="productID"/>
+                <attribute attribute-id="masterProductID"/>
+                <attribute attribute-id="subscribers"/>
+            </attribute-group>
+        </group-definitions>
+    </custom-type>
+</metadata>

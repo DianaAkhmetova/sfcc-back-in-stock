@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Demo waitlist data (NOT part of the deliverable metadata). Built into backinstock_demo_data.zip by
+    scripts/build-metadata.js, which replaces {{DEMO_EMAIL}} with "demo-email" (or "username") from dw.json.
+    SKUs are RefArch demo-catalog variants: 701644028350M = Button Front Shirt, 701643037582M = Ribbed Pleated Skirt.
+-->
+<custom-objects xmlns="http://www.demandware.com/xml/impex/customobject/2006-10-31">
+    <custom-object type-id="BackInStockProduct" object-id="701644028350M">
+        <object-attribute attribute-id="masterProductID">25592518M</object-attribute>
+        <object-attribute attribute-id="subscribers">[{"email":"{{DEMO_EMAIL}}","phone":"+15551234567","smsConsent":true,"status":"PENDING","attempts":0,"subscribedAt":1795219200000},{"email":"anna@example.com","phone":null,"smsConsent":false,"status":"PENDING","attempts":0,"subscribedAt":1795222800000},{"email":"ben@example.com","phone":null,"smsConsent":false,"status":"PENDING","attempts":0,"subscribedAt":1795226400000},{"email":"carla@example.com","phone":"+447700900123","smsConsent":true,"status":"PENDING","attempts":0,"subscribedAt":1795230000000}]</object-attribute>
+    </custom-object>
+    <custom-object type-id="BackInStockProduct" object-id="701643037582M">
+        <object-attribute attribute-id="masterProductID">25503070M</object-attribute>
+        <object-attribute attribute-id="subscribers">[{"email":"{{DEMO_EMAIL}}","phone":null,"smsConsent":false,"status":"PENDING","attempts":0,"subscribedAt":1795233600000},{"email":"dan@example.com","phone":null,"smsConsent":false,"status":"PENDING","attempts":0,"subscribedAt":1795237200000}]</object-attribute>
+    </custom-object>
+</custom-objects>

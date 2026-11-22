@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Outbound notification provider (mock): Webhook.site.
+    BEFORE IMPORT: replace REPLACE_WITH_WEBHOOK_TOKEN with your Webhook.site token and set a random
+    HMAC secret (used to sign X-BIS-Signature). Both are editable later in
+    Administration > Operations > Services > Service Credentials.
+-->
+<services xmlns="http://www.demandware.com/xml/impex/services/2014-09-26">
+    <service-credential service-credential-id="backinstock.webhook.credentials">
+        <url>https://webhook.site/REPLACE_WITH_WEBHOOK_TOKEN</url>
+        <user-id>backinstock</user-id>
+        <password>REPLACE_WITH_RANDOM_HMAC_SECRET</password>
+    </service-credential>
+
+    <service-profile service-profile-id="backinstock.webhook.profile">
+        <!-- Fail fast: a slow provider must not stall the whole hourly run. -->
+        <timeout-millis>5000</timeout-millis>
+        <!-- Client-side rate limiter: never exceed what the provider allows (here 120/min). -->
+        <rate-limit-enabled>true</rate-limit-enabled>
+        <rate-limit-calls>120</rate-limit-calls>
+        <rate-limit-millis>60000</rate-limit-millis>
+        <!-- Circuit breaker: after 10 failures within 60s, stop calling for a while. -->
+        <cb-enabled>true</cb-enabled>
+        <cb-calls>10</cb-calls>
+        <cb-millis>60000</cb-millis>
+    </service-profile>
+
+    <service service-id="backinstock.webhook.notify">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>backinstock</log-prefix>
+        <!-- Communication log masks PII via filterLogMessage; still keep it off in production. -->
+        <comm-log-enabled>true</comm-log-enabled>
+        <force-prd-enabled>false</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>backinstock.webhook.profile</profile-id>
+        <credential-id>backinstock.webhook.credentials</credential-id>
+    </service>
+</services>

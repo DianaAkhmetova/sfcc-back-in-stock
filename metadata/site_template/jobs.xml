@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jobs xmlns="http://www.demandware.com/xml/impex/jobs/2015-07-01">
+    <job job-id="BackInStock-ProcessWaitlist">
+        <description>Hourly: notify waitlisted shoppers when their SKU is replenished (threshold + partial replenishment).</description>
+        <parameters/>
+        <flow>
+            <context site-id="RefArch"/>
+            <step step-id="ProcessWaitlist" type="custom.BackInStock.ProcessWaitlist" enforce-restart="false">
+                <description>Evaluate inventory and deliver notifications</description>
+                <parameters>
+                    <parameter name="MinimumStockThreshold">30</parameter>
+                    <parameter name="NotificationMultiplier">2</parameter>
+                    <parameter name="MaxAttempts">5</parameter>
+                    <parameter name="DeliveryProvider">webhook</parameter>
+                    <parameter name="TestMode">false</parameter>
+                </parameters>
+            </step>
+        </flow>
+        <rules/>
+        <triggers>
+            <run-recurring enabled="true">
+                <recurrence>
+                    <date-from>2026-11-22Z</date-from>
+                    <start-time>00:05:00.000Z</start-time>
+                    <interval>1h</interval>
+                    <day-of-week>
+                        <weekday>Monday</weekday>
+                        <weekday>Tuesday</weekday>
+                        <weekday>Wednesday</weekday>
+                        <weekday>Thursday</weekday>
+                        <weekday>Friday</weekday>
+                        <weekday>Saturday</weekday>
+                        <weekday>Sunday</weekday>
+                    </day-of-week>
+                </recurrence>
+            </run-recurring>
+        </triggers>
+    </job>
+</jobs>
