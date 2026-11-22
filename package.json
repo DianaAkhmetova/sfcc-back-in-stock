@@ -1,0 +1,22 @@
+{
+  "name": "sfcc-back-in-stock",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Back-In-Stock Waitlist Engine for Salesforce B2C Commerce (PWA Kit + custom cartridge)",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "upload": "dwupload --code-version version1 --cartridge cartridges/demo_backinstock",
+    "watch": "dwupload watch --code-version version1 --cartridge cartridges/demo_backinstock",
+    "lint": "eslint cartridges",
+    "zip:metadata": "node scripts/build-metadata.js",
+    "storefront:start": "npm --prefix storefront start",
+    "storefront:build": "npm --prefix storefront run build"
+  },
+  "devDependencies": {
+    "dwupload": "^4.0.0",
+    "eslint": "^8.57.1",
+    "sfcc-dts": "^1.0.12"
+  }
+}

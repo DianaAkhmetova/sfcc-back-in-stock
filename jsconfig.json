@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "noLib": true,
+    "checkJs": false,
+    "baseUrl": ".",
+    "typeRoots": ["./node_modules/sfcc-dts/@types"],
+    "paths": { "*": ["./cartridges/*"] }
+  },
+  "include": ["node_modules/sfcc-dts/@types/sfcc/index.d.ts", "cartridges/**/*.js"]
+}

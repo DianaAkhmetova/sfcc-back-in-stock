@@ -1,0 +1,10 @@
+dw.json
+node_modules/
+.env
+*.log
+.DS_Store
+build/
+dist/
+backinstock_site_template.zip
+backinstock_demo_data.zip
+.claude/settings.local.json
